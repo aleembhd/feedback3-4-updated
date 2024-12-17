@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Login - Real Estate App</title>
+    <link rel="icon" href="images/favicon.png" type="image/x-icon">
+    <link rel="apple-touch-icon" href="images/favicon.png">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #000000;
+            --secondary-color: #ffffff;
+            --accent-color: #808080;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: var(--primary-color);
+            color: var(--secondary-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(4px);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .logo {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 2rem;
+            border-radius: 50%;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            color: var(--accent-color);
+            margin-bottom: 2rem;
+            font-size: 1rem;
+        }
+
+        .google-btn {
+            background: var(--secondary-color);
+            color: var(--primary-color);
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .google-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.2);
+        }
+
+        .google-btn img {
+            width: 24px;
+            margin-right: 10px;
+        }
+
+        .error-message {
+            color: #ff4444;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .loading {
+            display: none;
+            margin: 1rem auto;
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--accent-color);
+            border-radius: 50%;
+            border-top-color: var(--secondary-color);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        footer {
+            position: fixed;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--accent-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="images/logo.png" alt="Logo" class="logo">
+        <h1>Welcome</h1>
+        <p class="subtitle">Sign in to continue to the Real Estate Portal</p>
+        
+        <button id="googleSignIn" class="google-btn">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+            Sign in with Google
+        </button>
+        
+        <div id="loading" class="loading"></div>
+        <p id="errorMessage" class="error-message"></p>
+    </div>
+
+    <footer>
+        &copy; 2024 All rights reserved.
+    </footer>
+
+    <script>
+        // Initialize Firebase with your config
+        const firebaseConfig = {
+            apiKey: "AIzaSyADbdw5KtrmjQT_5EBJ6kNzExx8kkTEkuc",
+            authDomain: "realestate-694f3.firebaseapp.com",
+            databaseURL: "https://realestate-694f3-default-rtdb.firebaseio.com",
+            projectId: "realestate-694f3",
+            storageBucket: "realestate-694f3.appspot.com",
+            messagingSenderId: "966861149434",
+            appId: "1:966861149434:web:8a57876a91c80bcf216543",
+            measurementId: "G-J68SDN99DV"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+
+        // Add this flag to prevent loops
+        const redirected = sessionStorage.getItem('redirected');
+        
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user && !redirected) {
+                sessionStorage.setItem('redirected', 'true');
+                window.location.replace('index.html');
+            }
+        });
+
+        const googleSignIn = document.getElementById('googleSignIn');
+        const loading = document.getElementById('loading');
+        const errorMessage = document.getElementById('errorMessage');
+
+        googleSignIn.addEventListener('click', () => {
+            loading.style.display = 'block';
+            googleSignIn.style.display = 'none';
+            errorMessage.style.display = 'none';
+
+            const provider = new firebase.auth.GoogleAuthProvider();
+            
+            firebase.auth().signInWithPopup(provider)
+                .then((result) => {
+                    // Store user info if needed
+                    localStorage.setItem('userEmail', result.user.email);
+                    // Redirect to index.html
+                    window.location.href = 'index.html';
+                })
+                .catch((error) => {
+                    console.error('Auth error:', error);
+                    errorMessage.textContent = 'Authentication failed. Please try again.';
+                    errorMessage.style.display = 'block';
+                    loading.style.display = 'none';
+                    googleSignIn.style.display = 'flex';
+                });
+        });
+    </script>
+</body>
+</html> 
